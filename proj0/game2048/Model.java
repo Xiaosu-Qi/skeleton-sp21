@@ -113,6 +113,68 @@ public class Model extends Observable {
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
+
+        if (checkMove()) {
+            for (int c=0; c<4; c++) {
+                moveRow(c);
+            }
+        } if (checkMerge()) {
+            for (int c=0; c<4; c++) {
+                mergeRow(c);
+            }
+        }
+        changed = true;
+
+//        board.move(c, 3, t);
+//        score += 7;
+
+        checkGameOver();
+        if (changed) {
+            setChanged();
+        }
+        return changed;
+    }
+
+    private void mergeRow(int c) {
+//        int [] status = new int [4];
+
+        for (int r=3; r>0; r--) {
+            Tile t_u = board.tile(c, r);
+            Tile t_d = board.tile(c, r-1);
+
+            if (t_u == null | (t_u != null & t_d ==null)) {
+                return;
+            }
+
+            if (t_u.value() == t_d.value()) {
+                score += t_d.value()*2;
+                int r2 = r-1;
+                while (r2 >= 0) {
+                    Tile t_t = board.tile(c, r2);
+                    if (t_t != null) {
+                        board.move(c, r2+1, t_t);
+                    }
+                    r2 -= 1;
+                }
+            }
+        }
+
+    }
+    private void moveRow(int c) {
+        for (int r=3; r>=0; r--) {
+            Tile t = board.tile(c, r);
+            if (t == null & r >0) {
+                int r2 = r-1;
+                Tile t_d = board.tile(c, r2);
+                while (r2 >= 0 & t_d != null) {
+                    board.move(c, r, t_d);
+                    break;
+                }
+            }
+        }
+    }
+
+    private boolean checkMerge() {
         int [] [] cols = new int [4][4];
 
         for (int c=0; c<4; c++) {
@@ -145,11 +207,12 @@ public class Model extends Observable {
                                     break;
                                 } else {
 
-                                    cols[c][r] = t_d.value()*2;
-                                    cols[c][r2] = 0;
-                                    score += t_d.value()*2;
-                                    r = r2 - 1;
-                                    break;
+//                                    cols[c][r] = t_d.value()*2;
+//                                    cols[c][r2] = 0;
+//                                    score += t_d.value()*2;
+                                    return true;
+//                                    r = r2 - 1;
+//                                    break;
                                 }
                             }
                         }
@@ -158,18 +221,26 @@ public class Model extends Observable {
                 }
             }
         }
-        System.out.println(score);
-        System.out.println(cols[2][2]);
-//        board.move(c, 3, t);
-//        score += 7;
-
-        checkGameOver();
-        if (changed) {
-            setChanged();
-        }
-        return changed;
+        return false;
     }
 
+    private boolean checkMove() {
+        for (int c=0; c<4; c++) {
+            for (int r=0; r<3; r++) {
+                Tile t_d = board.tile(c, r);
+                Tile t_u = board.tile(c, r+1);
+                if (t_d == null) {
+                    continue;
+                } else {
+                    if (t_u == null) {
+                        return true;
+                    }
+                    continue;
+                }
+            }
+        }
+        return false;
+    }
     /** Checks if the game is over and sets the gameOver variable
      *  appropriately.
      */
