@@ -114,20 +114,25 @@ public class Model extends Observable {
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
 
-        if (checkMove()) {
-            for (int c=0; c<4; c++) {
-                moveRow(c);
+        board.setViewingPerspective(side);
+
+        if (checkMove() == false & checkMerge() == false) {
+            changed = false;
+        } else {
+            if (checkMove()) {
+                for (int c = 0; c < 4; c++) {
+                    moveRow(c);
+                }
             }
-        } if (checkMerge()) {
-            for (int c=0; c<4; c++) {
-                mergeRow(c);
+            if (checkMerge()) {
+                for (int c = 0; c < 4; c++) {
+                    mergeRow(c);
+                }
             }
+            changed = true;
         }
-        changed = true;
 
-//        board.move(c, 3, t);
-//        score += 7;
-
+        board.setViewingPerspective(Side.NORTH);
         checkGameOver();
         if (changed) {
             setChanged();
@@ -136,14 +141,12 @@ public class Model extends Observable {
     }
 
     private void mergeRow(int c) {
-//        int [] status = new int [4];
-
         for (int r=3; r>0; r--) {
             Tile t_u = board.tile(c, r);
             Tile t_d = board.tile(c, r-1);
 
-            if (t_u == null | (t_u != null & t_d ==null)) {
-                return;
+            if (t_u == null || (t_u != null & t_d ==null)) {
+                continue;
             }
 
             if (t_u.value() == t_d.value()) {
@@ -153,6 +156,7 @@ public class Model extends Observable {
                     Tile t_t = board.tile(c, r2);
                     if (t_t != null) {
                         board.move(c, r2+1, t_t);
+                        setChanged();
                     }
                     r2 -= 1;
                 }
@@ -165,10 +169,13 @@ public class Model extends Observable {
             Tile t = board.tile(c, r);
             if (t == null & r >0) {
                 int r2 = r-1;
-                Tile t_d = board.tile(c, r2);
-                while (r2 >= 0 & t_d != null) {
-                    board.move(c, r, t_d);
-                    break;
+                while (r2 >= 0) {
+                    Tile t_d = board.tile(c, r2);
+                    if (t_d != null) {
+                        board.move(c, r, t_d);
+                        break;
+                    }
+                    r2 = r2-1;
                 }
             }
         }
@@ -178,46 +185,23 @@ public class Model extends Observable {
         int [] [] cols = new int [4][4];
 
         for (int c=0; c<4; c++) {
-            int r=3;
-            int [] col = new int[4];
-            while (r>=0) {
-                Tile t_u = board.tile(c, r);
-                if (t_u == null) { /** If the value is null, then add a 0 to the matrix. */
-                    cols[c][r] = 0;
-                    r -= 1;
-                } else {
-                    /** if the value is not null, and it is the last row,
-                     * then add the original value to the matrix. */
-                    if (r == 0) {
-                        cols[c][r] = t_u.value();
-                        break;
-                    } else {
-                        /** if the value is not null, and it is not the last row,
-                         * then compare the next row value and add to the matrix
-                         */
-                        int r2 = r - 1;
-                        while (r2 >= 0) {
-                            Tile t_d = board.tile(c, r2);
-                            if (t_d == null) {
-                                cols[c][r2] = 0;
-                                r2 = r2 - 1;
-                            } else {
-                                if (t_d.value() != t_u.value()) {
-                                    r = r2;
-                                    break;
-                                } else {
+            if (checkRowMerge(c)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-//                                    cols[c][r] = t_d.value()*2;
-//                                    cols[c][r2] = 0;
-//                                    score += t_d.value()*2;
-                                    return true;
-//                                    r = r2 - 1;
-//                                    break;
-                                }
-                            }
-                        }
-                        break;
-                    }
+    private boolean checkRowMerge(int c) {
+        for (int r=3; r>0; r--) {
+            Tile t_u = board.tile(c,r);
+            Tile t_d = board.tile(c, r-1);
+
+            if (t_u == null || t_d == null) {
+                break;
+            } else {
+                if (t_d.value() == t_u.value()) {
+                    return true;
                 }
             }
         }

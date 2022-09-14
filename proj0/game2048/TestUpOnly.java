@@ -2,8 +2,6 @@ package game2048;
 
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
 /** Tests the tilt() method in the up (Side.NORTH) direction only.
  *
  * @author Omar Khan
@@ -105,6 +103,30 @@ public class TestUpOnly extends TestUtils {
         String prevBoard = model.toString();
         boolean changed = model.tilt(Side.NORTH);
         checkChanged(Side.NORTH, true, changed);
+        checkModel(after, 4, 0, prevBoard, Side.NORTH);
+    }
+
+
+    @Test
+    /** Merge non-adjacent tiles right. */
+    public void testRightNonAdjacentMerge() {
+        int[][] before = new int[][]{
+                {0, 0, 0, 4},
+                {0, 0, 0, 2},
+                {0, 0, 0, 2},
+                {0, 0, 4, 0},
+        };
+        int[][] after = new int[][]{
+                {0, 0, 4, 4},
+                {0, 0, 0, 4},
+                {0, 0, 0, 0},
+                {0, 0, 0, 0},
+        };
+
+        updateModel(before, 0, 0, false);
+        String prevBoard = model.toString();
+        boolean changed = model.tilt(Side.NORTH);
+        checkChanged(Side.EAST, true, changed);
         checkModel(after, 4, 0, prevBoard, Side.NORTH);
     }
 }
