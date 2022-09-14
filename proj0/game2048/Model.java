@@ -113,15 +113,55 @@ public class Model extends Observable {
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
+        int [] [] cols = new int [4][4];
+
         for (int c=0; c<4; c++) {
-            for (int r=0; r<4; r++) {
-                Tile t = board.tile(c, r);
-                if (t != null) {
-                    board.move(c, 3, t);
-                    score += 7;
+            int r=3;
+            int [] col = new int[4];
+            while (r>=0) {
+                Tile t_u = board.tile(c, r);
+                if (t_u == null) { /** If the value is null, then add a 0 to the matrix. */
+                    cols[c][r] = 0;
+                    r -= 1;
+                } else {
+                    /** if the value is not null, and it is the last row,
+                     * then add the original value to the matrix. */
+                    if (r == 0) {
+                        cols[c][r] = t_u.value();
+                        break;
+                    } else {
+                        /** if the value is not null, and it is not the last row,
+                         * then compare the next row value and add to the matrix
+                         */
+                        int r2 = r - 1;
+                        while (r2 >= 0) {
+                            Tile t_d = board.tile(c, r2);
+                            if (t_d == null) {
+                                cols[c][r2] = 0;
+                                r2 = r2 - 1;
+                            } else {
+                                if (t_d.value() != t_u.value()) {
+                                    r = r2;
+                                    break;
+                                } else {
+
+                                    cols[c][r] = t_d.value()*2;
+                                    cols[c][r2] = 0;
+                                    score += t_d.value()*2;
+                                    r = r2 - 1;
+                                    break;
+                                }
+                            }
+                        }
+                        break;
+                    }
                 }
             }
         }
+        System.out.println(score);
+        System.out.println(cols[2][2]);
+//        board.move(c, 3, t);
+//        score += 7;
 
         checkGameOver();
         if (changed) {
